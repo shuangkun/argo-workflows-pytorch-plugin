@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: pytorch-training-
+spec:
+  entrypoint: pytorch-demo
+  templates:
+    - name: pytorch-demo
+      plugin:
+        pytorch:
+          # The complete definition of PyTorchJob (PyTorch Operator CRD needs to be installed in advance)
+          apiVersion: kubeflow.org/v1
+          kind: PyTorchJob
+          metadata:
+            name: pytorch-distributed-job
+            namespace: argo
+          spec:
+            pytorchReplicaSpecs:
+              Master:
+                replicas: 1
+                template:
+                  spec:
+                    containers:
+                      - name: pytorch
+                        image: pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+                        command: ["python", "/workspace/train.py"]
+                        resources:
+                          limits:
+                            nvidia.com/gpu: 1
+                        volumeMounts:
+                          - name: code
+                            mountPath: /workspace
+              Worker:
+                replicas: 2  # worker number
+                template:
+                  spec:
+                    containers:
+                      - name: pytorch
+                        image: pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+                        command: ["python", "/workspace/train.py"]
+                        resources:
+                          limits:
+                            cpu: 4
+                            memory: 8Gi
+            runPolicy:
+              cleanPodPolicy: Running
+
+      inputs:
+        parameters:
+          - name: learning-rate
+            value: "0.001"
+      volumes:
+        - name: code
+          persistentVolumeClaim:
+            claimName: training-code-pvc

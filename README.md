@@ -6,7 +6,7 @@ A plugin lets Argo Workflows orchestrate PyTorch jobs.
 
 ## Why argo-workflows-pytorch-plugin
 
-* Submit tasks using non-string methods and more flexibly control and observe the status of pytorch jobs.
+* Submit tasks using non-string methods. More flexibly control and observe the status of pytorch jobs.
 
 * Save costs. In scenarios where a large number of PyTorch jobs are orchestrated, there is no need to generate an equal number of resource pods.
 
